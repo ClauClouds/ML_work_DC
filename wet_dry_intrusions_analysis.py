@@ -52,6 +52,7 @@ height = profile_era5_start.level.values
 # initializing output variables
 SST = np.zeros(n_images)
 im_type = np.zeros(n_images)
+im_name_arr = np.zeros(n_images)
 TCWV =np.zeros(n_images)
 TCC = np.zeros(n_images)
 TCLW =np.zeros(n_images)
@@ -83,7 +84,7 @@ q_profile.fill(np.nan)
 t_profile.fill(np.nan)
 q_profile_std.fill(np.nan)
 t_profile_std.fill(np.nan)
-
+im_name_arr.fill(np.nan)
 
 
 # loop on images to read the era5 data from them
@@ -93,7 +94,7 @@ for ind_images in range(n_images):
     id_image = wet_dry_info.location.values[ind_images][ind_start:ind_start+14]
     print(ind_images)
     #print(ind_images, n_images)
-
+    im_name_arr[ind_images] = id_image
     # reading image type (wet or dry)
     type_im = wet_dry_info.dry_wet.values[ind_images]
     if type_im == 'dry':
@@ -151,14 +152,14 @@ for ind_images in range(n_images):
                                         * (profile_era5.longitude > lon_min)*(profile_era5.longitude <= lon_max))
 
         # making a plot of the era5 domain and the selected box
-        fig, axs = plt.subplots(figsize=(10,10), constrained_layout=True)
-        surface_era5.tcwv.plot(x='longitude', y='latitude')
-        rect=mpatches.Rectangle((lon_max, lat_min),lon_min-lon_max,lat_max-lat_min,
-                        fill = False,
-                        color = "purple",
-                        linewidth = 2)
-        plt.gca().add_patch(rect)
-        fig.savefig(path_out+id_image+'_'+type_im+'.png')
+        #fig, axs = plt.subplots(figsize=(10,10), constrained_layout=True)
+        #surface_era5.tcwv.plot(x='longitude', y='latitude')
+        #rect=mpatches.Rectangle((lon_max, lat_min),lon_min-lon_max,lat_max-lat_min,
+        #                fill = False,
+    #                    color = "purple",
+    #                    linewidth = 2)
+    #    plt.gca().add_patch(rect)
+    #    fig.savefig(path_out+id_image+'_'+type_im+'.png')
 
         # calculating mean profiles and mean surface variables in the selected domain
         SST[ind_images] = surface_crop.sst.mean(skipna='True')
@@ -188,7 +189,7 @@ for ind_images in range(n_images):
 # saving a ncdf file for each group of crops
 crop_data = xr.Dataset(
 data_vars={
-    'im_names': (('n_crops',), id_image, {'long_name': 'Names of image', 'units':''}),
+    'im_names': (('n_crops',), im_name_arr, {'long_name': 'Names of image', 'units':''}),
     "SST": (('n_crops',), SST, {'long_name': 'Sea surface temperature ', 'units':'K', "standard_name": "SST"}),
     'SST_std':(('n_crops',), SST_std, {'long_name': 'Sea suface temperature standard deviation', 'units':'K', "standard_name": "SST_standard_dev"}),
     "TCWV": (('n_crops',), TCWV, {'long_name': 'Total column water vapor ', 'units':'kg m**-2', "standard_name": "TCWV"}),
