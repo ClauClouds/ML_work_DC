@@ -25,9 +25,12 @@ import matplotlib.patches as mpatches
 pd.set_option('display.max_rows', 500)
 
 
+
 # path and file name of dry wet info and their lat lon data
 path_DC_work = '/net/ostro/ML_work_DC/'
-wet_dry_info = xr.open_dataset(path_DC_work+'intrusions1_info.nc')
+intrusion_info = pd.read_csv(path_DC_work+'intrusion1_embedding_space.csv')
+wet_dry_info = intrusion_info.to_xarray() 
+
 path_lat_lon = path_DC_work+'lat_lon_dry_wet/'
 
 # path and filename of ERA5 data
@@ -68,6 +71,19 @@ q_profile = np.zeros((n_images, len(height)))
 t_profile = np.zeros((n_images, len(height)))
 q_profile_std = np.zeros((n_images, len(height)))
 t_profile_std = np.zeros((n_images, len(height)))
+
+w_profile = np.zeros((n_images, len(height)))
+rh_profile = np.zeros((n_images, len(height)))
+w_profile_std = np.zeros((n_images, len(height)))
+rh_profile_std = np.zeros((n_images, len(height)))
+clwc_profile = np.zeros((n_images, len(height)))
+clwc_profile_std = np.zeros((n_images, len(height)))
+cc_profile = np.zeros((n_images, len(height)))
+cc_profile_std = np.zeros((n_images, len(height)))
+u_profile = np.zeros((n_images, len(height)))
+u_profile_std = np.zeros((n_images, len(height)))
+v_profile = np.zeros((n_images, len(height)))
+v_profile_std = np.zeros((n_images, len(height)))
 SST.fill(np.nan)
 TCWV.fill(np.nan)
 TCC.fill(np.nan)
@@ -84,6 +100,16 @@ q_profile.fill(np.nan)
 t_profile.fill(np.nan)
 q_profile_std.fill(np.nan)
 t_profile_std.fill(np.nan)
+w_profile.fill(np.nan)
+rh_profile.fill(np.nan)
+w_profile_std.fill(np.nan)
+rh_profile_std.fill(np.nan)
+clwc_profile.fill(np.nan)
+clwc_profile_std.fill(np.nan)
+u_profile.fill(np.nan)
+u_profile_std.fill(np.nan)
+v_profile.fill(np.nan)
+v_profile_std.fill(np.nan)
 im_name_arr.fill(np.nan)
 
 
@@ -184,8 +210,20 @@ for ind_images in range(n_images):
         q_profile_std[ind_images,:] = profiles_crop.q.std(dim=('longitude', 'latitude'), skipna='True')
         t_profile[ind_images,:] = profiles_crop.t.mean(dim=('longitude', 'latitude'), skipna='True')
         t_profile_std[ind_images,:] = profiles_crop.t.std(dim=('longitude', 'latitude'), skipna='True')
-
-
+        w_profile[ind_images,:] = profiles_crop.w.mean(dim=('longitude', 'latitude'), skipna='True')
+        w_profile_std[ind_images,:] = profiles_crop.w.std(dim=('longitude', 'latitude'), skipna='True')
+        u_profile[ind_images,:] = profiles_crop.u.mean(dim=('longitude', 'latitude'), skipna='True')
+        u_profile_std[ind_images,:] = profiles_crop.u.std(dim=('longitude', 'latitude'), skipna='True')
+        v_profile[ind_images,:] = profiles_crop.v.mean(dim=('longitude', 'latitude'), skipna='True')
+        v_profile_std[ind_images,:] = profiles_crop.v.std(dim=('longitude', 'latitude'), skipna='True')
+        rh_profile[ind_images,:] = profiles_crop.r.mean(dim=('longitude', 'latitude'), skipna='True')
+        rh_profile_std[ind_images,:] = profiles_crop.r.std(dim=('longitude', 'latitude'), skipna='True')
+        clwc_profile[ind_images,:] = profiles_crop.clwc.mean(dim=('longitude', 'latitude'), skipna='True')
+        clwc_profile_std[ind_images,:] = profiles_crop.clwc.std(dim=('longitude', 'latitude'), skipna='True')
+        cc_profile[ind_images,:] = profiles_crop.cc.mean(dim=('longitude', 'latitude'), skipna='True')
+        cc_profile_std[ind_images,:] = profiles_crop.cc.std(dim=('longitude', 'latitude'), skipna='True')
+                
+        
 # saving a ncdf file for each group of crops
 crop_data = xr.Dataset(
 data_vars={
@@ -208,6 +246,18 @@ data_vars={
     'q_std':(('n_crops','levels'), q_profile_std, {'long_name': 'Specific humidity standard deviation', 'units':'kg kg**-1',}),
     't_std':(('n_crops','levels'), t_profile_std, {'long_name': 'Temperature standard deviation', 'units':'K'}),
     't':(('n_crops','levels'), t_profile, {'long_name': 'Temperature', 'standard_name':'Temperature', 'units':'K'}),
+    'w_std':(('n_crops','levels'), w_profile_std, {'long_name': 'vertical velocity standard deviation', 'units':'ms-1'}),
+    'w':(('n_crops','levels'), w_profile, {'long_name': 'Vertical velocity', 'standard_name':'w', 'units':'ms-1'}),
+    'u_std':(('n_crops','levels'), u_profile_std, {'long_name': 'U component of wind standard deviation', 'units':'ms-1'}),
+    'u':(('n_crops','levels'), u_profile, {'long_name': 'U component of wind', 'standard_name':'eastward wind', 'units':'ms-1'}),
+    'v_std':(('n_crops','levels'), v_profile_std, {'long_name': 'v component of wind standard deviation', 'units':'ms-1'}),
+    'v':(('n_crops','levels'), v_profile, {'long_name': 'V component of wind', 'standard_name':'northward_wind', 'units':'ms-1'}),
+    'rh_std':(('n_crops','levels'), rh_profile_std, {'long_name': 'rel hum standard deviation', 'units':'%'}),
+    'rh':(('n_crops','levels'), rh_profile, {'long_name': 'relative humidity', 'standard_name':'rel hum', 'units':'%'}),  
+    'clwc_std':(('n_crops','levels'), clwc_profile_std, {'long_name': 'specific cloud liquid water content standard deviation', 'units':'kg kg**-1'}),
+    'clwc':(('n_crops','levels'), clwc_profile, {'long_name': 'specific cloud liquid water content', 'standard_name':'rel hum', 'units':'kg kg**-1'}),
+    'cc_std':(('n_crops','levels'), cc_profile_std, {'long_name': 'fraction of cloud cover standard deviation', 'units':'kg kg**-1'}),
+    'cc':(('n_crops','levels'), cc_profile, {'long_name': 'raction of cloud cover', 'standard_name':'rel hum', 'units':'kg kg**-1'}),    
 },
 coords={
     "n_crops": (('n_crops',), np.arange(n_images) ,), # leave units intentionally blank, to be defined in the encoding
@@ -242,7 +292,7 @@ crop_data = crop_data.assign_attrs({
         "processing: " + crop_data.attrs["DATA_PROCESSING"] + "\n",
         " adapted to enhance CF compatibility\n",
     ]),  # the idea of this attribute is that each applied transformation is appended to create something like a log
-    "featureType": "trajectoryProfile",
+    "featureType": "satellite-era5",
 })
 
 # storing ncdf data
